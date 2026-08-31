@@ -1,0 +1,771 @@
+// ============================================================
+// TOP-PHARMA — PRISMA SCHEMA
+// PostgreSQL + Prisma v6
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CONTENT_MANAGER
+  FINANCE_MANAGER
+  SUPPORT
+  TEACHER
+  STUDENT
+}
+
+enum ContentType {
+  VIDEO
+  FILE
+  QUIZ
+  RESOURCE
+  EXAM
+}
+
+enum FileType {
+  PDF
+  WORD
+  EXCEL
+  POWERPOINT
+  IMAGE
+  ARCHIVE
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentProvider {
+  PAYMOB
+  STRIPE
+  MANUAL
+  MOCK
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  REFUNDED
+}
+
+enum AccessSource {
+  PURCHASE
+  CODE
+  ADMIN
+  PROMO
+  SUBSCRIPTION
+}
+
+enum NotificationType {
+  NEW_LECTURE
+  NEW_COURSE
+  ANNOUNCEMENT
+  PAYMENT_CONFIRMED
+  ACCESS_GRANTED
+  QUIZ_RESULT
+  SYSTEM
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+// ============================================================
+// USERS & AUTH
+// ============================================================
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  phone            String?   @unique
+  firstName        String
+  lastName         String
+  avatarUrl        String?
+  passwordHash     String
+  isActive         Boolean   @default(true)
+  isEmailVerified  Boolean   @default(false)
+  emailVerifyToken String?   @unique
+  passwordResetToken String? @unique
+  passwordResetExpiry DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  // Relations
+  userRoles        UserRole_Assignment[]
+  refreshTokens    RefreshToken[]
+  progress         UserProgress[]
+  favorites        UserFavorite[]
+  bookmarks        UserBookmark[]
+  orders           Order[]
+  userAccess       UserAccess[]
+  notifications    Notification[]
+  auditLogsAsActor AuditLog[]   @relation("actor")
+  teacher          Teacher?
+  quizAttempts     QuizAttempt[]
+  watchHistory     WatchHistory[]
+
+  @@index([email])
+  @@index([isActive])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+// ============================================================
+// RBAC — ROLES & PERMISSIONS
+// ============================================================
+
+model Role {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  description String?
+  isSystem    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  permissions RolePermission[]
+  userRoles   UserRole_Assignment[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  name        String           @unique // "university.create", "video.upload", etc.
+  description String?
+  group       String?          // "Universities", "Content", etc.
+  createdAt   DateTime         @default(now())
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole_Assignment {
+  userId    String
+  roleId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  grantedAt DateTime @default(now())
+  grantedBy String?
+
+  @@id([userId, roleId])
+  @@map("user_role_assignments")
+}
+
+// ============================================================
+// ACADEMIC HIERARCHY
+// University → College → AcademicYear → Semester → Subject
+// ============================================================
+
+model University {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  nameAr       String
+  nameEn       String
+  description  String?
+  logoUrl      String?
+  coverUrl     String?
+  location     String?
+  website      String?
+  isActive     Boolean   @default(true)
+  displayOrder Int       @default(0)
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  colleges     College[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([displayOrder])
+  @@map("universities")
+}
+
+model College {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  nameAr       String
+  nameEn       String
+  description  String?
+  logoUrl      String?
+  isActive     Boolean    @default(true)
+  displayOrder Int        @default(0)
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Restrict)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+
+  academicYears AcademicYear[]
+
+  @@index([universityId])
+  @@index([slug])
+  @@index([isActive])
+  @@map("colleges")
+}
+
+model AcademicYear {
+  id           String    @id @default(cuid())
+  nameAr       String
+  nameEn       String
+  displayOrder Int       @default(0)
+  collegeId    String
+  college      College   @relation(fields: [collegeId], references: [id], onDelete: Restrict)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  semesters    Semester[]
+
+  @@index([collegeId])
+  @@index([displayOrder])
+  @@map("academic_years")
+}
+
+model Semester {
+  id             String       @id @default(cuid())
+  nameAr         String
+  nameEn         String
+  displayOrder   Int          @default(0)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  subjects       Subject[]
+
+  @@index([academicYearId])
+  @@map("semesters")
+}
+
+model Subject {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  nameAr       String
+  nameEn       String
+  description  String?
+  thumbnailUrl String?
+  isFree       Boolean   @default(false)
+  isPublished  Boolean   @default(false)
+  semesterId   String
+  price        Decimal?  @db.Decimal(10, 2)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  semester     Semester  @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  teachers     SubjectTeacher[]
+  chapters     Chapter[]
+  userAccess   UserAccess[]
+  orderItems   OrderItem[]
+  discountSubjects DiscountSubject[]
+
+  @@index([semesterId])
+  @@index([slug])
+  @@index([isPublished])
+  @@index([isFree])
+  @@map("subjects")
+}
+
+// Many-to-many: Subject ↔ Teacher
+model SubjectTeacher {
+  subjectId  String
+  teacherId  String
+  subject    Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher    Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@id([subjectId, teacherId])
+  @@map("subject_teachers")
+}
+
+// ============================================================
+// CONTENT HIERARCHY
+// Subject → Chapter → Content → (Video | File | Quiz)
+// ============================================================
+
+model Chapter {
+  id           String    @id @default(cuid())
+  titleAr      String
+  titleEn      String?
+  displayOrder Int       @default(0)
+  subjectId    String
+  subject      Subject   @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  contents     Content[]
+
+  @@index([subjectId])
+  @@index([displayOrder])
+  @@map("chapters")
+}
+
+model Content {
+  id           String      @id @default(cuid())
+  type         ContentType
+  titleAr      String
+  titleEn      String?
+  description  String?
+  displayOrder Int         @default(0)
+  isFree       Boolean     @default(false)
+  isPublished  Boolean     @default(false)
+  chapterId    String
+  chapter      Chapter     @relation(fields: [chapterId], references: [id], onDelete: Restrict)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+
+  // Type-specific relations (at most one will exist)
+  video        Video?
+  file         File?
+  quiz         Quiz?
+
+  // Cross-cutting relations
+  progress     UserProgress[]
+  userAccess   UserAccess[]
+  favorites    UserFavorite[]
+  bookmarks    UserBookmark[]
+  watchHistory WatchHistory[]
+
+  @@index([chapterId])
+  @@index([type])
+  @@index([isPublished])
+  @@map("contents")
+}
+
+model Video {
+  id         String   @id @default(cuid())
+  contentId  String   @unique
+  content    Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  storageKey String   // internal storage path/key
+  duration   Int?     // seconds
+  qualities  Json?    // [{label: "720p", storageKey: "path/to/720.mp4"}, ...]
+  viewCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("videos")
+}
+
+model File {
+  id            String   @id @default(cuid())
+  contentId     String   @unique
+  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  storageKey    String
+  fileType      FileType @default(OTHER)
+  originalName  String
+  mimeType      String
+  sizeBytes     BigInt
+  downloadCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("files")
+}
+
+// ============================================================
+// QUIZZES
+// ============================================================
+
+model Quiz {
+  id               String        @id @default(cuid())
+  contentId        String        @unique
+  content          Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  passingScore     Int           @default(60) // percentage
+  maxAttempts      Int?          // null = unlimited
+  timeLimitMinutes Int?          // null = no limit
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  questions        QuizQuestion[]
+  attempts         QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id          String       @id @default(cuid())
+  quizId      String
+  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text        String
+  explanation String?
+  points      Int          @default(1)
+  displayOrder Int         @default(0)
+  createdAt   DateTime     @default(now())
+
+  answers     QuizAnswer[]
+
+  @@index([quizId])
+  @@map("quiz_questions")
+}
+
+model QuizAnswer {
+  id           String       @id @default(cuid())
+  questionId   String
+  question     QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text         String
+  isCorrect    Boolean      @default(false)
+  explanation  String?
+  displayOrder Int          @default(0)
+
+  @@index([questionId])
+  @@map("quiz_answers")
+}
+
+model QuizAttempt {
+  id          String    @id @default(cuid())
+  quizId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score       Int       // total score earned
+  maxScore    Int       // total possible score
+  percentage  Int       // 0–100
+  passed      Boolean
+  answers     Json      // [{questionId, answerId, correct}, ...]
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([quizId, userId])
+  @@map("quiz_attempts")
+}
+
+// ============================================================
+// TEACHERS
+// ============================================================
+
+model Teacher {
+  id            String    @id @default(cuid())
+  nameAr        String
+  nameEn        String
+  bio           String?
+  academicTitle String?
+  avatarUrl     String?
+  isActive      Boolean   @default(true)
+  userId        String?   @unique // optional: linked user account
+  user          User?     @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  subjects      SubjectTeacher[]
+
+  @@index([isActive])
+  @@map("teachers")
+}
+
+// ============================================================
+// STUDENT PROGRESS & ENGAGEMENT
+// ============================================================
+
+model UserProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId   String
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  position    Int      @default(0) // seconds into video
+  completed   Boolean  @default(false)
+  lastWatched DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, contentId])
+  @@index([userId, lastWatched])
+  @@map("user_progress")
+}
+
+model WatchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  watchedAt DateTime @default(now())
+
+  @@index([userId, watchedAt])
+  @@map("watch_history")
+}
+
+model UserFavorite {
+  userId    String
+  contentId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, contentId])
+  @@map("user_favorites")
+}
+
+model UserBookmark {
+  userId    String
+  contentId String
+  note      String?
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, contentId])
+  @@map("user_bookmarks")
+}
+
+// ============================================================
+// ACCESS CONTROL (CENTRALIZED)
+// ============================================================
+
+model UserAccess {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId   String?      // access to entire subject
+  subject     Subject?     @relation(fields: [subjectId], references: [id])
+  contentId   String?      // access to specific content item
+  content     Content?     @relation(fields: [contentId], references: [id])
+  source      AccessSource
+  expiresAt   DateTime?    // null = permanent
+  grantedAt   DateTime     @default(now())
+  grantedBy   String?      // admin user ID if manual grant
+  revokedAt   DateTime?
+  metadata    Json?
+
+  @@index([userId, subjectId])
+  @@index([userId, contentId])
+  @@map("user_access")
+}
+
+model ActivationCode {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  subjectId  String?
+  maxUses    Int       @default(1)
+  usedCount  Int       @default(0)
+  expiresAt  DateTime?
+  isActive   Boolean   @default(true)
+  createdBy  String
+  createdAt  DateTime  @default(now())
+
+  @@index([code])
+  @@map("activation_codes")
+}
+
+// ============================================================
+// PAYMENTS & ORDERS
+// ============================================================
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status      OrderStatus @default(PENDING)
+  totalAmount Decimal     @db.Decimal(12, 2)
+  currency    String      @default("EGP")
+  discountId  String?
+  discount    Discount?   @relation(fields: [discountId], references: [id])
+  discountAmount Decimal? @db.Decimal(12, 2)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items       OrderItem[]
+  payment     Payment?
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectName String   // snapshot at time of purchase
+  price       Decimal  @db.Decimal(10, 2)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id             String          @id @default(cuid())
+  orderId        String          @unique
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  provider       PaymentProvider
+  providerRef    String?         // external transaction reference
+  status         PaymentStatus   @default(PENDING)
+  amount         Decimal         @db.Decimal(12, 2)
+  currency       String          @default("EGP")
+  verifiedAt     DateTime?
+  failedAt       DateTime?
+  refundedAt     DateTime?
+  webhookPayload Json?           // raw provider response (no sensitive data)
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+  @@index([providerRef])
+  @@map("payments")
+}
+
+model Discount {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  type      DiscountType
+  value     Decimal      @db.Decimal(10, 2)
+  maxUses   Int?
+  usedCount Int          @default(0)
+  expiresAt DateTime?
+  isActive  Boolean      @default(true)
+  createdBy String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  orders    Order[]
+  subjects  DiscountSubject[]
+
+  @@index([code])
+  @@map("discounts")
+}
+
+// Discount can be limited to specific subjects
+model DiscountSubject {
+  discountId String
+  subjectId  String
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([discountId, subjectId])
+  @@map("discount_subjects")
+}
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+
+model Announcement {
+  id           String    @id @default(cuid())
+  titleAr      String
+  titleEn      String?
+  bodyAr       String
+  bodyEn       String?
+  universityId String?   // null = platform-wide
+  collegeId    String?
+  isPublished  Boolean   @default(false)
+  publishAt    DateTime?
+  expiresAt    DateTime?
+  createdBy    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([isPublished])
+  @@index([universityId])
+  @@map("announcements")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// AUDIT LOG (APPEND-ONLY)
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation("actor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String   // "university.create", "user.suspend", etc.
+  entityType String?  // "University", "User", etc.
+  entityId   String?
+  metadata   Json?    // NEVER store passwords, tokens, or secrets
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================================
+// PLATFORM SETTINGS (KEY-VALUE STORE)
+// ============================================================
+
+model Setting {
+  key         String   @id
+  value       String
+  description String?
+  isPublic    Boolean  @default(false) // can be exposed to frontend
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+
+  @@map("settings")
+}

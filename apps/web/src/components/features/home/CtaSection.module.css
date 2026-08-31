@@ -1,0 +1,71 @@
+.section { padding: 80px 0; }
+
+.card {
+  position: relative;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #1A1A35 0%, #0F1028 100%);
+  border: 1px solid rgba(108, 99, 255, 0.3);
+  padding: 72px 48px;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(108, 99, 255, 0.15);
+}
+
+.bg { position: absolute; inset: 0; pointer-events: none; }
+
+.orb1 {
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108,99,255,0.2) 0%, transparent 70%);
+}
+
+.orb2 {
+  position: absolute;
+  bottom: -50%;
+  left: 10%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.emoji { font-size: 48px; margin-bottom: 20px; }
+
+.title {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  font-size: 17px;
+  color: var(--text-secondary);
+  max-width: 500px;
+  margin: 0 auto 36px;
+  line-height: 1.8;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .card { padding: 48px 24px; }
+  .actions { flex-direction: column; }
+  .actions a, .actions button { width: 100%; }
+}

@@ -1,0 +1,139 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-ar);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0);
+  transition: background 0.2s;
+}
+
+.btn:hover::before {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btn:active { transform: scale(0.97); }
+
+/* Sizes */
+.sm {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+.md {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.lg {
+  height: 52px;
+  padding: 0 28px;
+  font-size: 16px;
+  border-radius: var(--radius-lg);
+}
+
+/* Variants */
+.primary {
+  background: var(--gradient-primary);
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+
+.primary:hover {
+  box-shadow: 0 6px 32px rgba(108, 99, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.accent {
+  background: var(--gradient-accent);
+  color: #fff;
+  box-shadow: var(--shadow-accent);
+}
+
+.accent:hover {
+  box-shadow: 0 6px 32px rgba(245, 158, 11, 0.5);
+  transform: translateY(-1px);
+}
+
+.secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.secondary:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ghost:hover {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+}
+
+.outline {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--border-primary);
+}
+
+.outline:hover {
+  background: var(--primary-glow);
+}
+
+.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* States */
+.fullWidth { width: 100%; }
+
+.loading { opacity: 0.7; cursor: not-allowed; pointer-events: none; }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

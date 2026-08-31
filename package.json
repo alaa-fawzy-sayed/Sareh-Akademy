@@ -1,0 +1,35 @@
+{
+  "name": "top-pharma",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Top-Pharma — Multi-University Educational Platform",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "db:generate": "prisma generate --schema=./prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
+    "db:migrate:prod": "prisma migrate deploy --schema=./prisma/schema.prisma",
+    "db:seed": "node prisma/seed.mjs",
+    "db:studio": "prisma studio --schema=./prisma/schema.prisma",
+    "db:reset": "prisma migrate reset --schema=./prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "argon2": "^0.43.1",
+    "eslint": "^9.32.0",
+    "prettier": "^3.5.3",
+    "prisma": "^6.12.0",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.12.0"
+  }
+}
