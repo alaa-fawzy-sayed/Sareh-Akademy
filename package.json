@@ -19,7 +19,6 @@
   "devDependencies": {
     "argon2": "^0.43.1",
     "eslint": "^9.32.0",
-    "next": "16.3.1",
     "prettier": "^3.5.3",
     "prisma": "^6.12.0",
     "turbo": "^2.5.4",
