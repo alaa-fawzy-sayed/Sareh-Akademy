@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'top-pharma-auth',
+      name: 'sarh-academy-auth',
       partialize: (state) => ({ user: state.user, token: state.token, isAuthenticated: state.isAuthenticated }),
     }
   )

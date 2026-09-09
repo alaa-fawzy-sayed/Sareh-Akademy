@@ -1,8 +1,8 @@
 {
-  "name": "top-pharma",
+  "name": "sarh-academy",
   "version": "1.0.0",
   "private": true,
-  "description": "Top-Pharma — Multi-University Educational Platform",
+  "description": "Sarh Academy (صرح أكاديمي) — المنصة التعليمية المتكاملة للجامعات المصرية",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",

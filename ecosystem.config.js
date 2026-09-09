@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'top-pharma-api',
+      name: 'sarh-academy-api',
       cwd: './apps/api',
       script: 'dist/main.js',
       instances: 'max',
@@ -15,7 +15,7 @@ module.exports = {
       },
     },
     {
-      name: 'top-pharma-web',
+      name: 'sarh-academy-web',
       cwd: './apps/web',
       script: 'node_modules/next/dist/bin/next',
       args: 'start -p 3000',

@@ -31,7 +31,7 @@ export default function RootLayout({
           id="theme-init"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('top_pharma_theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.body&&document.body.setAttribute('data-theme',t);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('sarh_academy_theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.body&&document.body.setAttribute('data-theme',t);}catch(e){}})();`,
           }}
         />
       </head>

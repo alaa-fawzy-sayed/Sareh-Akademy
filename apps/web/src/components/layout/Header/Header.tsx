@@ -69,7 +69,7 @@ export function Header() {
 
   // ── 1. Theme Initialization & Toggle ──
   useEffect(() => {
-    const savedTheme = (localStorage.getItem('top_pharma_theme') as 'dark' | 'light') || 'dark';
+    const savedTheme = (localStorage.getItem('sarh_academy_theme') as 'dark' | 'light') || 'dark';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
     document.body.setAttribute('data-theme', savedTheme);
@@ -78,7 +78,7 @@ export function Header() {
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
-    localStorage.setItem('top_pharma_theme', nextTheme);
+    localStorage.setItem('sarh_academy_theme', nextTheme);
     document.documentElement.setAttribute('data-theme', nextTheme);
     document.body.setAttribute('data-theme', nextTheme);
   };
