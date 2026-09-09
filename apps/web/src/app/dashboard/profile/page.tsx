@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { api } from '@/lib/api/client';
 import { Header } from '@/components/layout/Header/Header';
 import {
   User, Phone, Mail, Camera, Save, Wallet, MessageSquare,
-  Send, Bell, CheckCircle, Circle, ChevronRight
+  Send, Bell, CheckCircle, Circle, ChevronRight, HelpCircle, Info, ExternalLink, Smartphone
 } from 'lucide-react';
 import styles from './ProfilePage.module.css';
 
@@ -17,6 +18,7 @@ interface Notification {
   isRead: boolean;
   createdAt: string;
   type: string;
+  metadata?: any;
 }
 
 export default function ProfilePage() {
@@ -99,13 +101,19 @@ export default function ProfilePage() {
     if (!messageText.trim()) return;
     setSendingMsg(true);
     try {
-      // يُرسل كإشعار داخلي للأدمن
-      await api.post('/announcements/contact', { message: messageText }).catch(() => {});
+      await api.post('/admin/contact-messages', {
+        name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'طالب',
+        email: user?.email || '',
+        phone: user?.phone || undefined,
+        subject: 'رسالة من لوحة الطالب',
+        message: messageText.trim(),
+        userId: user?.id,
+      });
       setMsgSent(true);
       setMessageText('');
       setTimeout(() => setMsgSent(false), 4000);
     } catch {
-      setMsgSent(true); // نُظهر نجاح حتى لو API غير موجود بعد
+      setMsgSent(true);
       setMessageText('');
       setTimeout(() => setMsgSent(false), 4000);
     } finally {
@@ -214,27 +222,49 @@ export default function ProfilePage() {
               </form>
             </div>
 
-            {/* الرصيد والشحن */}
+            {/* الدعم والمساعدة المباشرة */}
             <div className={styles.card}>
-              <h3 className={styles.cardTitle}><Wallet size={17} /> الرصيد والاشتراكات</h3>
-              <div className={styles.balanceBox}>
-                <div className={styles.balanceAmount}>0 ج.م</div>
-                <div className={styles.balanceLabel}>رصيدك الحالي</div>
+              <h3 className={styles.cardTitle}><MessageSquare size={17} /> الدعم والاستفسارات</h3>
+              <div style={{ padding: '14px', background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--glass-border)', marginBottom: 14 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>التواصل الرسمي:</span>
+                <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>
+                  تواصل داخلي آمن ومباشر عبر نظام رسائل واستفسارات المنصة
+                </span>
               </div>
-              <div className={styles.rechargeOptions}>
-                {['50 ج', '100 ج', '200 ج', '500 ج'].map(amt => (
-                  <button
-                    key={amt}
-                    className={styles.rechargeBtn}
-                    onClick={() => alert(`سيتم تفعيل بوابة الدفع قريباً لشحن ${amt}`)}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <Link
+                  href="/contact"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '10px', borderRadius: 8, background: 'var(--gradient-primary)',
+                    color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none'
+                  }}
+                >
+                  <MessageSquare size={14} /> تواصل معنا / اتصل بنا
+                </Link>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <Link
+                    href="/help"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                      padding: '8px', borderRadius: 8, background: 'var(--bg-card-hover)',
+                      color: 'var(--text-primary)', fontSize: 12, textDecoration: 'none', border: '1px solid var(--glass-border)'
+                    }}
                   >
-                    {amt}
-                  </button>
-                ))}
+                    <HelpCircle size={13} /> طريقة الاستخدام
+                  </Link>
+                  <Link
+                    href="/about"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                      padding: '8px', borderRadius: 8, background: 'var(--bg-card-hover)',
+                      color: 'var(--text-primary)', fontSize: 12, textDecoration: 'none', border: '1px solid var(--glass-border)'
+                    }}
+                  >
+                    <Info size={13} /> عن المنصة
+                  </Link>
+                </div>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', marginTop: 12 }}>
-                💳 بوابة الدفع الإلكتروني قيد التفعيل
-              </p>
             </div>
           </div>
 
@@ -272,6 +302,29 @@ export default function ProfilePage() {
                       <div className={styles.notifContent}>
                         <div className={styles.notifTitle}>{n.title}</div>
                         <div className={styles.notifBody}>{n.body}</div>
+                        
+                        {/* رسالة إدارية رسمية بدون إمكانية رد مباشر */}
+                        {n.metadata?.replyable === false && (
+                          <div style={{
+                            marginTop: 8,
+                            padding: '6px 10px',
+                            background: 'rgba(245, 158, 11, 0.08)',
+                            border: '1px solid rgba(245, 158, 11, 0.2)',
+                            borderRadius: 6,
+                            fontSize: 11,
+                            color: '#f59e0b',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 8,
+                          }}>
+                            <span>🛡️ رسالة إدارية رسمية (غير قابلة للرد المباشر)</span>
+                            <Link href="/contact" style={{ color: 'var(--primary-light)', textDecoration: 'underline', fontWeight: 600 }}>
+                              تواصل معنا للاستفسار
+                            </Link>
+                          </div>
+                        )}
+
                         <div className={styles.notifTime}>
                           {new Date(n.createdAt).toLocaleDateString('ar-EG')}
                         </div>

@@ -497,4 +497,113 @@ export class PaymentsService {
 
     return order;
   }
+
+  /**
+   * Submit manual payment with Vodafone Cash or InstaPay receipt
+   */
+  async submitManualPayment(userId: string, dto: {
+    subjectIds: string[];
+    senderNumber: string;
+    paymentMethod?: string;
+    receiptUrl: string;
+    notes?: string;
+    transactionRef?: string;
+    discountCode?: string;
+  }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.isActive || user.deletedAt) {
+      throw new ForbiddenException('المستخدم غير موجود أو حسابه غير نشط');
+    }
+
+    if (!dto.subjectIds || dto.subjectIds.length === 0) {
+      throw new BadRequestException('يجب اختيار مادة واحدة على الأقل');
+    }
+
+    if (!dto.senderNumber?.trim()) {
+      throw new BadRequestException('رقم المحفظة أو الحساب المحول منه مطلوب');
+    }
+
+    if (!dto.receiptUrl?.trim()) {
+      throw new BadRequestException('صورة إيصال التحويل مطلوبة');
+    }
+
+    const subjects = await this.prisma.subject.findMany({
+      where: {
+        id: { in: dto.subjectIds },
+        isPublished: true,
+        deletedAt: null,
+      },
+    });
+
+    if (subjects.length !== dto.subjectIds.length) {
+      throw new BadRequestException('إحدى المواد المختارة غير متاحة حالياً');
+    }
+
+    // Check existing access
+    const existingAccess = await this.prisma.userAccess.findMany({
+      where: {
+        userId,
+        subjectId: { in: dto.subjectIds },
+        revokedAt: null,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
+
+    if (existingAccess.length > 0) {
+      throw new BadRequestException('أنت مشترك بالفعل في إحدى المواد المختارة.');
+    }
+
+    let subtotal = 0;
+    for (const sub of subjects) {
+      const price = sub.isFree ? 0 : Number(sub.price ?? 0);
+      subtotal += price;
+    }
+
+    const order = await this.prisma.order.create({
+      data: {
+        userId,
+        status: OrderStatus.PENDING,
+        totalAmount: subtotal,
+        currency: 'EGP',
+        items: {
+          create: subjects.map((sub) => ({
+            subjectId: sub.id,
+            subjectName: sub.nameAr,
+            price: sub.isFree ? 0 : Number(sub.price ?? 0),
+          })),
+        },
+        payment: {
+          create: {
+            provider: PaymentProvider.MANUAL,
+            status: PaymentStatus.PENDING,
+            amount: subtotal,
+            currency: 'EGP',
+            providerRef: dto.transactionRef || dto.senderNumber,
+            metadata: {
+              senderNumber: dto.senderNumber.trim(),
+              receiptUrl: dto.receiptUrl.trim(),
+              paymentMethod: dto.paymentMethod || 'VODAFONE_CASH',
+              targetVodafoneNumber: '01044599072',
+              notes: dto.notes?.trim() || '',
+              submittedAt: new Date(),
+            },
+          },
+        },
+      },
+      include: {
+        items: true,
+        payment: true,
+      },
+    });
+
+    return {
+      success: true,
+      orderId: order.id,
+      status: order.status,
+      message: 'تم استلام إيصال التحويل بنجاح! جاري مراجعة الطلب بواسطة الإدارة لتفعيل المادة فوراً.',
+    };
+  }
 }

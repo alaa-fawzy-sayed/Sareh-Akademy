@@ -16,7 +16,7 @@ export function CtaSection() {
             <div className={styles.emoji}>🚀</div>
             <h2 className={styles.title}>ابدأ رحلتك التعليمية اليوم</h2>
             <p className={styles.subtitle}>
-              انضم لأكثر من 15,000 طالب يتعلمون مع Top-Pharma.
+              انضم لأكثر من 15,000 طالب يتعلمون مع صرح أكاديمي (Sarh Academy).
               سجّل مجاناً وابدأ فوراً.
             </p>
             <div className={styles.actions}>

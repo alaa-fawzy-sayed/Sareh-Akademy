@@ -81,7 +81,7 @@ class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  MAIL_FROM: string = 'noreply@top-pharma.com';
+  MAIL_FROM: string = 'noreply@sarh-academy.com';
 
   // ---- Paymob ----
   @IsString()

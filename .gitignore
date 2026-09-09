@@ -9,3 +9,6 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+check_*.js
+test_*.js
+scratch-*.mjs

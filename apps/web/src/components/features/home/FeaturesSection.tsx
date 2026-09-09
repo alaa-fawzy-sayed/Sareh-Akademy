@@ -45,7 +45,7 @@ export function FeaturesSection() {
     <section className={styles.section} id="features-section">
       <div className="container">
         <div className={styles.header}>
-          <div className={styles.tag}>لماذا Top-Pharma؟</div>
+          <div className={styles.tag}>لماذا صرح أكاديمي؟</div>
           <h2 className={styles.title}>كل ما تحتاجه <span className="gradient-text">في مكان واحد</span></h2>
         </div>
         <div className={styles.grid}>

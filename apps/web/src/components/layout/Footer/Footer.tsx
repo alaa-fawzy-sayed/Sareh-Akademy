@@ -11,15 +11,20 @@ export function Footer() {
           <div className={styles.brand}>
             <div className={styles.logo}>
               <div className={styles.logoIcon}><GraduationCap size={20} /></div>
-              <span className={styles.logoText}>Top<span className={styles.accent}>Pharma</span></span>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
+                <span className={styles.logoText}>صرح <span className={styles.accent}>أكاديمي</span></span>
+                <span style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '1.2px', fontWeight: 700 }}>SARH ACADEMY</span>
+              </div>
             </div>
             <p className={styles.desc}>
-              منصة تعليمية متكاملة لطلاب الجامعات المصرية، نقدم محتوى تعليمياً عالي الجودة في مختلف التخصصات.
+              المنصة التعليمية الأولى المتخصصة لطلاب الجامعات المصرية، نقدم محتوى وشروحات ومذكرات معتمدة بنظام متكامل.
             </p>
             <div className={styles.contact}>
-              <span><Mail size={14} /> support@toppharma.edu</span>
-              <span><Phone size={14} /> 01000000000+</span>
-              <span><MapPin size={14} /> القاهرة، مصر</span>
+              <span><Mail size={14} /> support@sarh-academy.com</span>
+              <span><MapPin size={14} /> مصر</span>
+              <Link href="/contact" style={{ color: 'var(--primary-light)', textDecoration: 'none' }}>
+                تواصل واستفسارات المنصة ←
+              </Link>
             </div>
           </div>
 
@@ -29,7 +34,7 @@ export function Footer() {
             <ul className={styles.links}>
               <li><Link href="/universities">الجامعات</Link></li>
               <li><Link href="/subjects">المواد الدراسية</Link></li>
-              <li><Link href="/teachers">الأساتذة</Link></li>
+              <li><Link href="/about">عن المنصة</Link></li>
             </ul>
           </div>
 
@@ -38,22 +43,22 @@ export function Footer() {
             <ul className={styles.links}>
               <li><Link href="/register">إنشاء حساب</Link></li>
               <li><Link href="/login">تسجيل الدخول</Link></li>
-              <li><Link href="/dashboard">لوحتي</Link></li>
+              <li><Link href="/dashboard">لوحتي الدراسية</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className={styles.colTitle}>الدعم</h4>
+            <h4 className={styles.colTitle}>المساعدة والدعم</h4>
             <ul className={styles.links}>
-              <li><Link href="/about">عن المنصة</Link></li>
-              <li><Link href="/privacy">سياسة الخصوصية</Link></li>
-              <li><Link href="/terms">الشروط والأحكام</Link></li>
+              <li><Link href="/help">طريقة الاستخدام (دليل الطالب)</Link></li>
+              <li><Link href="/contact">تواصل معنا / اتصل بنا</Link></li>
+              <li><Link href="/about">نبذة عن المنصة</Link></li>
             </ul>
           </div>
         </div>
 
         <div className={styles.bottom}>
-          <p>© {new Date().getFullYear()} Top-Pharma. جميع الحقوق محفوظة.</p>
+          <p>© {new Date().getFullYear()} صرح أكاديمي — Sarh Academy. جميع الحقوق محفوظة.</p>
           <p className={styles.madeWith}>صُنع بـ ❤️ لطلاب مصر</p>
         </div>
       </div>

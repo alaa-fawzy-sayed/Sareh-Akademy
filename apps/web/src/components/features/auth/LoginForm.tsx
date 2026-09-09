@@ -43,26 +43,34 @@ export function LoginForm() {
       }
 
       const data = await res.json();
-      const token: string = data.data?.accessToken ?? data.accessToken ?? '';
+      const token: string = data.accessToken ?? data.data?.accessToken ?? '';
 
       if (!token) {
         setError('حدث خطأ في الخادم، حاول مرة أخرى');
         return;
       }
 
-      // 2. جيب بيانات المستخدم الكاملة (اسم، رول...)
-      const meRes = await fetch(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: 'include',
-      });
+      // 2. Extract user data safely
+      let user = data.user ?? data.data?.user;
 
-      if (!meRes.ok) {
+      if (!user || !user.roles) {
+        const meRes = await fetch(`${API}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include',
+        });
+
+        if (meRes.ok) {
+          const me = await meRes.json();
+          user = me.user ?? me.data?.user ?? me.data ?? me;
+        }
+      }
+
+      if (!user) {
         setError('تعذّر جلب بيانات المستخدم');
         return;
       }
 
-      const me = await meRes.json();
-      const user = me.data ?? me;
+      const userRoles = Array.isArray(user.roles) ? user.roles : [];
 
       // 3. احفظ في الـ store
       setAuth(
@@ -72,16 +80,21 @@ export function LoginForm() {
           firstName: user.firstName,
           lastName: user.lastName,
           avatarUrl: user.avatarUrl,
-          roles: user.roles ?? [],
+          roles: userRoles,
         },
         token,
       );
 
       // 4. وجّه حسب الدور
-      const isAdmin = (user.roles ?? []).some((r: string) =>
+      const isAdmin = userRoles.some((r: string) =>
         ['SUPER_ADMIN', 'ADMIN', 'CONTENT_MANAGER'].includes(r),
       );
-      router.push(isAdmin ? '/admin' : '/dashboard');
+
+      if (isAdmin) {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch {
       setError('حدث خطأ. تحقق من اتصالك بالإنترنت.');
     } finally {
@@ -101,7 +114,10 @@ export function LoginForm() {
         {/* Logo */}
         <Link href="/" className={styles.logo} id="login-logo">
           <div className={styles.logoIcon}><GraduationCap size={20} /></div>
-          <span>Top<span className={styles.accent}>Pharma</span></span>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, textAlign: 'start' }}>
+            <span>صرح <span className={styles.accent}>أكاديمي</span></span>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '1px', fontWeight: 700 }}>SARH ACADEMY</span>
+          </div>
         </Link>
 
         <div className={styles.card}>

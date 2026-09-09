@@ -36,6 +36,63 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-elevated, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
+  padding: 10px 14px;
+  max-width: 360px;
+  margin: 20px auto 0;
+  transition: border-color 0.2s;
+}
+
+.searchWrap:focus-within {
+  border-color: var(--primary, #3b82f6);
+}
+
+.searchIcon {
+  color: var(--text-secondary, #94a3b8);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-primary, #1e293b);
+  width: 100%;
+}
+
+.searchInput::placeholder { color: var(--text-muted, #94a3b8); }
+
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 20px;
+  color: var(--text-muted, #94a3b8);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 0.8s linear infinite; }
+
+.emptyWrap {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.emptyIcon {
+  margin: 0 auto 16px;
+  opacity: 0.4;
+}
+
 .categoryHeader {
   display: flex;
   align-items: center;
@@ -53,6 +110,27 @@
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--text-primary, #1e293b);
+}
+
+.categoryCount {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary, #3b82f6);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.categoryUniversity {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(100, 116, 139, 0.08);
+  color: var(--text-secondary, #64748b);
+  border: 1px solid rgba(100, 116, 139, 0.15);
 }
 
 .subjectsGrid {

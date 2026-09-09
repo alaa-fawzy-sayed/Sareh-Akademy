@@ -28,8 +28,21 @@ async function bootstrap() {
   );
 
   // ---- CORS ----
+  const configuredOrigins = frontendUrl.includes(',')
+    ? frontendUrl.split(',').map((u) => u.trim())
+    : [frontendUrl];
+
+  const allowedOrigins = Array.from(
+    new Set([
+      ...configuredOrigins,
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+    ]),
+  );
+
   app.enableCors({
-    origin: [frontendUrl, 'http://localhost:3000', 'http://localhost:5173'],
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -65,8 +78,8 @@ async function bootstrap() {
   // ---- Swagger (dev only) ----
   if (nodeEnv !== 'production') {
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('Top-Pharma API')
-      .setDescription('Multi-University Educational Platform — REST API')
+      .setTitle('Sarh Academy API | صرح أكاديمي')
+      .setDescription('Sarh Academy Educational Platform — REST API')
       .setVersion('1.0')
       .addBearerAuth(
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
@@ -97,7 +110,7 @@ async function bootstrap() {
   }
 
   await app.listen(port);
-  console.log(`🚀 Top-Pharma API running on http://localhost:${port}/api/v1`);
+  console.log(`🚀 Sarh Academy (صرح أكاديمي) API running on http://localhost:${port}/api/v1`);
   console.log(`🌍 Environment: ${nodeEnv}`);
 }
 

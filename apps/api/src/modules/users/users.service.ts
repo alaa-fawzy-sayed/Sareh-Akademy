@@ -92,19 +92,22 @@ export class UsersService {
 
   async updateRole(id: string, roleName: string) {
     const user = await this.findOne(id);
-    const targetRole = await this.prisma.role.findUnique({ where: { name: roleName } });
-    if (!targetRole) throw new BadRequestException('الدور المحدد غير صالح');
+    const normalizedRole = roleName.trim().toUpperCase();
+    const targetRole = await this.prisma.role.findUnique({ where: { name: normalizedRole } });
+    if (!targetRole) throw new BadRequestException(`الدور المحدد (${roleName}) غير صالح`);
 
     // Remove existing roles for this user
     await this.prisma.userRole_Assignment.deleteMany({ where: { userId: id } });
 
     // Assign new role
-    return this.prisma.userRole_Assignment.create({
+    await this.prisma.userRole_Assignment.create({
       data: {
         userId: id,
         roleId: targetRole.id,
       },
     });
+
+    return this.findOne(id);
   }
 
   async toggleStatus(id: string) {

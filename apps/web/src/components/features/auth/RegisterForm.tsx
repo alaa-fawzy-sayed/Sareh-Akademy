@@ -117,7 +117,10 @@ export function RegisterForm() {
       <div className={styles.wrapper}>
         <Link href="/" className={styles.logo} id="register-logo">
           <div className={styles.logoIcon}><GraduationCap size={20} /></div>
-          <span>Top<span className={styles.accent}>Pharma</span></span>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, textAlign: 'start' }}>
+            <span>صرح <span className={styles.accent}>أكاديمي</span></span>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '1px', fontWeight: 700 }}>SARH ACADEMY</span>
+          </div>
         </Link>
 
         <div className={styles.card}>

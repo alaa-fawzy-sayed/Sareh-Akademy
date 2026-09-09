@@ -150,6 +150,13 @@
   text-align: center;
 }
 
+.navBadgeRed {
+  background: #EF4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+  animation: pulseRedBadge 2s infinite ease-in-out;
+}
+
 .navItem.active .navBadge {
   background: rgba(255,255,255,0.3);
 }

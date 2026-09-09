@@ -4,7 +4,7 @@ import { DashboardView } from '@/components/features/dashboard/DashboardView';
 
 export const metadata: Metadata = {
   title: 'لوحتي الدراسية',
-  description: 'تابع تقدمك الدراسي ومحتواك في Top-Pharma',
+  description: 'تابع تقدمك الدراسي ومحتواك في صرح أكاديمي (Sarh Academy)',
 };
 
 export default function DashboardPage() {

@@ -29,14 +29,14 @@ export class MailService {
   private readonly mailEnabled: boolean;
   private readonly mailFrom: string;
   private readonly frontendUrl: string;
-  private readonly appName = 'Top-Pharma';
+  private readonly appName = 'صرح أكاديمي — Sarh Academy';
 
   constructor(private readonly configService: ConfigService) {
     this.mailEnabled =
       this.configService.get<string>('MAIL_ENABLED', 'false') === 'true';
     this.mailFrom = this.configService.get<string>(
       'MAIL_FROM',
-      'noreply@top-pharma.com',
+      'noreply@sarh-academy.com',
     );
     this.frontendUrl = this.configService.get<string>(
       'FRONTEND_URL',

@@ -18,6 +18,8 @@ import {
   X,
   BarChart3,
   Settings,
+  MessageSquare,
+  Video,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth.store';
 import styles from './AdminSidebar.module.css';
@@ -33,9 +35,10 @@ const navSections = [
   {
     label: 'إدارة المحتوى',
     items: [
-      { href: '/admin/universities', label: 'الجامعات', icon: University },
-      { href: '/admin/colleges', label: 'الكليات', icon: GraduationCap },
+      { href: '/admin/content', label: 'رفع وإدارة الفيديوهات', icon: Video, badge: 'جديد ⚡' },
       { href: '/admin/subjects', label: 'المواد الدراسية', icon: BookOpen },
+      { href: '/admin/colleges', label: 'الكليات', icon: GraduationCap },
+      { href: '/admin/universities', label: 'الجامعات', icon: University },
     ],
   },
   {
@@ -46,10 +49,11 @@ const navSections = [
     ],
   },
   {
-    label: 'التواصل',
+    label: 'التواصل والرسائل',
     items: [
-      { href: '/admin/notifications', label: 'الإشعارات', icon: Bell },
-      { href: '/admin/announcements', label: 'الإعلانات', icon: Megaphone },
+      { href: '/admin/messages', label: 'رسائل الطلاب الواردة', icon: MessageSquare },
+      { href: '/admin/notifications', label: 'إرسال الإشعارات', icon: Bell },
+      { href: '/admin/announcements', label: 'الإعلانات العامة', icon: Megaphone },
     ],
   },
   {
@@ -63,9 +67,16 @@ const navSections = [
 interface AdminSidebarProps {
   open?: boolean;
   onClose?: () => void;
+  unreadMessagesCount?: number;
+  pendingPaymentsCount?: number;
 }
 
-export function AdminSidebar({ open = true, onClose }: AdminSidebarProps) {
+export function AdminSidebar({
+  open = true,
+  onClose,
+  unreadMessagesCount = 0,
+  pendingPaymentsCount = 0,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -103,8 +114,8 @@ export function AdminSidebar({ open = true, onClose }: AdminSidebarProps) {
             <Shield size={20} />
           </div>
           <div className={styles.brandText}>
-            <span className={styles.brandName}>TopPharma</span>
-            <span className={styles.brandSub}>لوحة الإدارة</span>
+            <span className={styles.brandName}>صرح أكاديمي</span>
+            <span className={styles.brandSub}>Sarh Academy — الإدارة</span>
           </div>
         </Link>
 
@@ -116,6 +127,18 @@ export function AdminSidebar({ open = true, onClose }: AdminSidebarProps) {
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
+
+                let badgeText = item.badge;
+                let isRedBadge = false;
+
+                if (item.href === '/admin/messages' && unreadMessagesCount > 0) {
+                  badgeText = `${unreadMessagesCount} جديد`;
+                  isRedBadge = true;
+                } else if (item.href === '/admin/payments' && pendingPaymentsCount > 0) {
+                  badgeText = `${pendingPaymentsCount} معلق`;
+                  isRedBadge = true;
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -128,8 +151,12 @@ export function AdminSidebar({ open = true, onClose }: AdminSidebarProps) {
                       <Icon size={18} />
                     </span>
                     <span className={styles.navLabel}>{item.label}</span>
-                    {item.badge && (
-                      <span className={styles.navBadge}>{item.badge}</span>
+                    {badgeText && (
+                      <span
+                        className={`${styles.navBadge} ${isRedBadge ? styles.navBadgeRed : ''}`}
+                      >
+                        {badgeText}
+                      </span>
                     )}
                   </Link>
                 );

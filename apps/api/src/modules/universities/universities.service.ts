@@ -73,11 +73,26 @@ export class UniversitiesService {
         colleges: {
           where: { isActive: true, deletedAt: null },
           orderBy: { displayOrder: 'asc' },
-          include: { _count: { select: { academicYears: true } } },
+          select: {
+            id: true,
+            nameAr: true,
+            nameEn: true,
+            slug: true,
+
+            description: true,
+            logoUrl: true,
+            displayOrder: true,
+            _count: {
+              select: {
+                academicYears: true,
+              },
+            },
+          },
         },
         _count: { select: { colleges: true } },
       },
     });
+
 
     if (!university) {
       throw new NotFoundException(`University "${slug}" not found`);

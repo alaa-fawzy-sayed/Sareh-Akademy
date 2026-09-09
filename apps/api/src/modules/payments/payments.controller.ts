@@ -33,6 +33,24 @@ export class PaymentsController {
     return this.paymentsService.checkout(user.id, dto);
   }
 
+  @Post('submit-manual-payment')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Submit manual payment with Vodafone Cash or InstaPay receipt' })
+  async submitManualPayment(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: {
+      subjectIds: string[];
+      senderNumber: string;
+      paymentMethod?: string;
+      receiptUrl: string;
+      notes?: string;
+      transactionRef?: string;
+      discountCode?: string;
+    },
+  ) {
+    return this.paymentsService.submitManualPayment(user.id, dto);
+  }
+
   @Public()
   @Post('webhook/paymob')
   @HttpCode(HttpStatus.OK)

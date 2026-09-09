@@ -1,53 +1,62 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Search, Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header/Header';
 import { Footer } from '@/components/layout/Footer/Footer';
-import { UNIVERSITIES } from '@/lib/data/universities';
+import { fetchAllCollegesWithSubjects, type CollegeWithSubjects } from '@/lib/api/services';
 import styles from './page.module.css';
 
-export const metadata: Metadata = {
-  title: 'المواد الدراسية',
-  description: 'دليل المقررات والمواد الدراسية لكليات الصيدلة والطب والعلوم والهندسة في الجامعات المصرية',
+// College icon fallback map
+const COLLEGE_ICONS: Record<string, string> = {
+  pharmacy: '⚗️',
+  dentistry: '🦷',
+  medicine: '🩺',
+  science: '🔬',
+  engineering: '⚙️',
+  law: '⚖️',
+  arts: '🎨',
+  commerce: '💼',
+  default: '📚',
 };
 
+function getIcon(slug: string, icon: string | null): string {
+  if (icon) return icon;
+  const key = Object.keys(COLLEGE_ICONS).find((k) => slug.includes(k));
+  return COLLEGE_ICONS[key ?? 'default'];
+}
+
 export default function SubjectsPage() {
-  // Aggregate colleges and their subjects across universities
-  const collegesMap = new Map<string, { nameAr: string; icon: string; subjects: Map<string, { name: string; isFree: boolean }> }>();
+  const [colleges, setColleges] = useState<CollegeWithSubjects[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
-  for (const uni of UNIVERSITIES) {
-    for (const col of uni.colleges) {
-      if (!collegesMap.has(col.slug)) {
-        collegesMap.set(col.slug, {
-          nameAr: col.nameAr,
-          icon: col.icon,
-          subjects: new Map(),
-        });
-      }
-      const existingCol = collegesMap.get(col.slug)!;
-      for (const sub of col.subjects) {
-        if (!existingCol.subjects.has(sub.name)) {
-          existingCol.subjects.set(sub.name, {
-            name: sub.name,
-            isFree: sub.isFree,
-          });
-        }
-      }
-    }
-  }
+  useEffect(() => {
+    fetchAllCollegesWithSubjects()
+      .then(setColleges)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const categoryList = Array.from(collegesMap.entries()).map(([slug, data]) => ({
-    slug,
-    nameAr: data.nameAr,
-    icon: data.icon,
-    subjects: Array.from(data.subjects.values()),
-  }));
+  // Client-side search filter
+  const filtered = search.trim()
+    ? colleges
+        .map((c) => ({
+          ...c,
+          subjects: c.subjects.filter((s) =>
+            s.nameAr.toLowerCase().includes(search.toLowerCase()) ||
+            s.nameEn.toLowerCase().includes(search.toLowerCase()),
+          ),
+        }))
+        .filter((c) => c.subjects.length > 0)
+    : colleges;
 
   return (
     <>
       <Header />
       <main className={styles.main}>
         <div className="container">
+          {/* Page header */}
           <div className={styles.header}>
             <h1 className={styles.title}>
               دليل <span className="gradient-text">المواد والمقررات</span>
@@ -55,38 +64,83 @@ export default function SubjectsPage() {
             <p className={styles.subtitle}>
               تصفح المقررات الدراسية المشروحة والشاملة لجميع التخصصات والكليات الجامعية
             </p>
+
+            {/* Search */}
+            <div className={styles.searchWrap}>
+              <Search size={16} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="ابحث عن مادة..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={styles.searchInput}
+                id="subjects-search"
+              />
+            </div>
           </div>
 
-          <div className={styles.categories}>
-            {categoryList.map((cat) => (
-              <section key={cat.slug} className={styles.categorySection}>
-                <div className={styles.categoryHeader}>
-                  <span className={styles.categoryIcon}>{cat.icon}</span>
-                  <h2 className={styles.categoryTitle}>{cat.nameAr}</h2>
-                </div>
+          {/* Loading */}
+          {loading && (
+            <div className={styles.loadingWrap}>
+              <Loader2 size={32} className={styles.spinner} />
+              <span>جاري تحميل المواد...</span>
+            </div>
+          )}
 
-                <div className={styles.subjectsGrid}>
-                  {cat.subjects.map((sub, idx) => (
-                    <Link
-                      key={idx}
-                      href={`/universities`}
-                      className={styles.subjectCard}
-                    >
-                      <div className={styles.subjectName}>{sub.name}</div>
-                      <div className={styles.subjectFooter}>
-                        {sub.isFree ? (
-                          <span className={styles.badgeFree}>متاح مجاناً</span>
-                        ) : (
-                          <span className={styles.badgePaid}>محتوى مميز</span>
-                        )}
-                        <ArrowLeft size={16} className={styles.arrow} />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
+          {/* Empty */}
+          {!loading && filtered.length === 0 && (
+            <div className={styles.emptyWrap}>
+              <BookOpen size={48} className={styles.emptyIcon} />
+              <p>{search ? 'لا توجد نتائج لبحثك' : 'لا توجد مواد منشورة حالياً'}</p>
+            </div>
+          )}
+
+          {/* Colleges + Subjects */}
+          {!loading && filtered.length > 0 && (
+            <div className={styles.categories}>
+              {filtered.map((cat) => (
+                <section key={cat.id} className={styles.categorySection}>
+                  <div className={styles.categoryHeader}>
+                    <span className={styles.categoryIcon}>{getIcon(cat.slug, cat.icon)}</span>
+                    <h2 className={styles.categoryTitle}>{cat.nameAr}</h2>
+                    {cat.universityNameAr && (
+                      <span className={styles.categoryUniversity}>{cat.universityNameAr}</span>
+                    )}
+                    <span className={styles.categoryCount}>{cat.subjects.length} مادة</span>
+                  </div>
+
+                  <div className={styles.subjectsGrid}>
+                    {cat.subjects.map((sub) => {
+                      // بناء الرابط الصحيح للكلية
+                      const href = cat.universitySlug
+                        ? `/universities/${cat.universitySlug}/${cat.slug}`
+                        : `/universities`;
+                      return (
+                        <Link
+                          key={sub.id}
+                          href={href}
+                          className={styles.subjectCard}
+                          id={`subject-card-${sub.id}`}
+                        >
+                          <div className={styles.subjectName}>{sub.nameAr}</div>
+                          <div className={styles.subjectFooter}>
+                            {sub.isFree ? (
+                              <span className={styles.badgeFree}>متاح مجاناً</span>
+                            ) : (
+                              <span className={styles.badgePaid}>
+                                {sub.price ? `${sub.price} ج` : 'محتوى مميز'}
+                              </span>
+                            )}
+                            <ArrowLeft size={16} className={styles.arrow} />
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
         </div>
       </main>
       <Footer />

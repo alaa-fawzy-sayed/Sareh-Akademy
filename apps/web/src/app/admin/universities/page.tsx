@@ -325,7 +325,7 @@ export default function AdminUniversitiesPage() {
                   <label className={styles.formLabel}>اسم الجامعة (بالعربي) *</label>
                   <input
                     className={styles.formInput}
-                    placeholder="مثال: جامعة القاهرة"
+                    placeholder="مثال: جامعة سفنكس"
                     value={formData.nameAr}
                     onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
                     required
@@ -336,7 +336,7 @@ export default function AdminUniversitiesPage() {
                   <label className={styles.formLabel}>اسم الجامعة (بالإنجليزي) *</label>
                   <input
                     className={styles.formInput}
-                    placeholder="مثال: Cairo University"
+                    placeholder="مثال: Sphinx University"
                     value={formData.nameEn}
                     onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
                     required
@@ -348,7 +348,7 @@ export default function AdminUniversitiesPage() {
                     <label className={styles.formLabel}>الـ Slug (رابط فريد بالإنجليزية) *</label>
                     <input
                       className={styles.formInput}
-                      placeholder="cairo-university"
+                      placeholder="sphinx"
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                       required

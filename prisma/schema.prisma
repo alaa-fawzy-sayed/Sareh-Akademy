@@ -124,6 +124,7 @@ model User {
   teacher          Teacher?
   quizAttempts     QuizAttempt[]
   watchHistory     WatchHistory[]
+  contactMessages  ContactMessage[]
 
   @@index([email])
   @@index([isActive])
@@ -291,6 +292,7 @@ model Subject {
   nameEn       String
   description  String?
   thumbnailUrl String?
+  introVideoUrl String?
   isFree       Boolean   @default(false)
   isPublished  Boolean   @default(false)
   semesterId   String
@@ -768,4 +770,27 @@ model Setting {
   updatedBy   String?
 
   @@map("settings")
+}
+
+// ============================================================
+// CONTACT & STUDENT INQUIRIES
+// ============================================================
+
+model ContactMessage {
+  id        String    @id @default(cuid())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isRead    Boolean   @default(false)
+  reply     String?
+  repliedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("contact_messages")
 }

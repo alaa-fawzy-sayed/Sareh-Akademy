@@ -28,7 +28,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('access_token');
-        window.location.href = '/login';
+        const path = window.location.pathname;
+        if (path.startsWith('/dashboard') || path.startsWith('/admin')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

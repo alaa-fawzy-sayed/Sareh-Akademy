@@ -29,12 +29,13 @@ interface UserData {
   subscriptionsCount: number;
 }
 
-const ROLES = ['الكل', 'STUDENT', 'CONTENT_MANAGER', 'ADMIN', 'SUPER_ADMIN'];
+const ROLES = ['الكل', 'STUDENT', 'TEACHER', 'CONTENT_MANAGER', 'ADMIN', 'SUPER_ADMIN'];
 const STATUSES = ['الكل', 'نشط', 'موقوف'];
 const PAGE_SIZE = 10;
 
 const roleLabel: Record<string, { label: string; badge: string }> = {
   STUDENT: { label: 'طالب', badge: styles.badgeBlue },
+  TEACHER: { label: 'مُحاضر', badge: styles.badgeGreen },
   CONTENT_MANAGER: { label: 'مدير محتوى', badge: styles.badgePurple },
   ADMIN: { label: 'مشرف', badge: styles.badgeYellow },
   SUPER_ADMIN: { label: 'مشرف أول', badge: styles.badgeRed },
@@ -53,6 +54,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -139,6 +141,9 @@ export default function AdminUsersPage() {
 
     try {
       await api.patch(`/users/${editUser.id}/role`, { role: targetRole });
+      const roleArabic = roleLabel[targetRole]?.label || targetRole;
+      setSuccessMsg(`تم بنجاح تعيين دور "${roleArabic}" للمستخدم ${editUser.firstName} ${editUser.lastName}`);
+      setTimeout(() => setSuccessMsg(''), 5000);
       setEditUser(null);
       fetchUsers();
     } catch (err: any) {
@@ -165,6 +170,26 @@ export default function AdminUsersPage() {
       </div>
 
       {error && <div className={styles.errorBanner} style={{ marginBottom: 20 }}>⚠️ {error}</div>}
+      {successMsg && (
+        <div
+          style={{
+            padding: '12px 16px',
+            marginBottom: 20,
+            background: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '8px',
+            color: '#10B981',
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <CheckCircle size={18} />
+          {successMsg}
+        </div>
+      )}
 
       {/* Card */}
       <div className={styles.card} id="users-table-card">
@@ -346,6 +371,7 @@ export default function AdminUsersPage() {
                   <label className={styles.formLabel}>صلاحية الدور</label>
                   <select name="role" defaultValue={editUser.roles[0] || 'STUDENT'} className={`${styles.formSelect}`}>
                     <option value="STUDENT">طالب (STUDENT)</option>
+                    <option value="TEACHER">مُحاضر / أستاذ (TEACHER)</option>
                     <option value="CONTENT_MANAGER">مدير محتوى (CONTENT_MANAGER)</option>
                     <option value="ADMIN">مشرف (ADMIN)</option>
                     <option value="SUPER_ADMIN">مشرف أول (SUPER_ADMIN)</option>

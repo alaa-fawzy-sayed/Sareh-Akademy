@@ -37,11 +37,12 @@ export class UsersController {
   }
 
   @Patch(':id/role')
-  updateRole(@Param('id') id: string, @Body('role') body: { role: string }) {
-    if (!body || !body.role) {
+  updateRole(@Param('id') id: string, @Body() body: any) {
+    const role = typeof body === 'string' ? body : (body?.role || body?.roleName);
+    if (!role) {
       throw new BadRequestException('يجب تحديد الدور الجديد');
     }
-    return this.usersService.updateRole(id, body.role);
+    return this.usersService.updateRole(id, role);
   }
 
   @Patch(':id/toggle-status')

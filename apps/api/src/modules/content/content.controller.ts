@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Patch,
   Delete,
   Get,
   Param,
@@ -29,8 +30,9 @@ export class ContentController {
 
   /**
    * GET /content/:id
-   * Get content with signed playback/download URL
+   * Get content with signed playback/download URL (publicly reachable, access logic verified inside)
    */
+  @Public()
   @Get(':id')
   getContent(
     @Param('id') id: string,
@@ -41,6 +43,16 @@ export class ContentController {
       user?.id,
       user?.roles ?? [],
     );
+  }
+
+  /**
+   * POST /content/create
+   * Admin/Teacher — create content item directly (video URL, PDF file URL, or quiz item)
+   */
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONTENT_MANAGER, UserRole.TEACHER)
+  @Post('create')
+  createContentDirect(@Body() body: any) {
+    return this.contentService.createContentDirect(body);
   }
 
   /**
@@ -164,6 +176,37 @@ export class ContentController {
       file.originalname,
       file.mimetype,
     );
+  }
+
+  /**
+   * POST /content/quiz/:quizId/attempt
+   * Authenticated student — submit answers for grading and record attempt
+   */
+  @Post('quiz/:quizId/attempt')
+  submitQuiz(
+    @Param('quizId') quizId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { answers: Array<{ questionId: string; answerId: string }> },
+  ) {
+    if (!user) throw new BadRequestException('Authentication required');
+    if (!body?.answers || !Array.isArray(body.answers)) {
+      throw new BadRequestException('answers array is required');
+    }
+    return this.contentService.submitQuizAttempt(quizId, user.id, body.answers);
+  }
+
+  /**
+   * PATCH /content/:id
+   * Admin/Teacher — update visibility, publishing, free preview status, and metadata
+   */
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONTENT_MANAGER, UserRole.TEACHER)
+  @Patch(':id')
+  @Post(':id/update') // Also support via POST
+  updateContent(
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
+    return this.contentService.updateContent(id, body);
   }
 
   /**

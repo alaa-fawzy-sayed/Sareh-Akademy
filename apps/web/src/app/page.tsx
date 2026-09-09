@@ -9,8 +9,8 @@ import { FeaturesSection } from '@/components/features/home/FeaturesSection';
 import { CtaSection } from '@/components/features/home/CtaSection';
 
 export const metadata: Metadata = {
-  title: 'Top-Pharma | منصة التعليم الجامعي الأولى في مصر',
-  description: 'تعلم مع أفضل الأساتذة، وصول فوري لمحاضرات الجامعات المصرية — فيديوهات، ملفات، كويزات',
+  title: 'صرح أكاديمي | Sarh Academy — منصة التعليم الجامعي الأولى في مصر',
+  description: 'منصة صرح أكاديمي (Sarh Academy) — تعلم مع أفضل الأساتذة، وصول فوري لمحاضرات الجامعات المصرية — فيديوهات، ملفات، كويزات',
 };
 
 export default function HomePage() {
